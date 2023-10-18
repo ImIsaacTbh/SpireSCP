@@ -22,6 +22,7 @@
     using NorthwoodLib.Pools;
     using Exiled.API.Features.Roles;
     using Exiled.Events.EventArgs.Scp049;
+    using PlayerRoles.PlayableScps.Scp079.Pinging;
 
     internal static class doctor
     {
@@ -38,73 +39,106 @@
                     {
                         if (pp != p)
                         {
+                            #region rayCasting(WIP)
                             RaycastHit hit;
-                            Vector3 dir = pp.Transform.position - new Vector3(p.Transform.position.x - 0.1f, p.Transform.position.y, p.Transform.position.z);
-                            dir = dir.normalized;
-                            Ray r = new Ray(new Vector3(p.Transform.position.x - 0.1f, p.Transform.position.y, p.Transform.position.z), dir);
-                            Physics.Raycast(r, out hit, maxDistance: 10);
-                            Player ppp;
-                            Player.TryGet(hit.collider, out ppp);
-                            if (ppp != pp)
+                            Ray r = new Ray(p.Transform.position, pp.Transform.position - p.Transform.position);
+                            Physics.Raycast(r, layerMask: 8, hitInfo: out hit, maxDistance: 15);
+
+                            for (int i = 0; i < 4; i++)
                             {
-                                dir = pp.Transform.position - new Vector3(p.Transform.position.x + 0.1f, p.Transform.position.y, p.Transform.position.z);
-                                r = new Ray(new Vector3(p.Transform.position.x + 0.1f, p.Transform.position.y, p.Transform.position.z), dir);
-                                Physics.Raycast(r, out hit, maxDistance: 10);
-                                Player.TryGet(hit.collider, out ppp);
-                                if (ppp != pp)
+                                r = new Ray(p.Transform.position, pp.Transform.position - p.Transform.position);
+                                Physics.Raycast(r, layerMask: 8, hitInfo: out hit, maxDistance: 15);
+                                if (hit.collider.gameObject == pp.GameObject && hit.distance < 10)
                                 {
-                                    dir = pp.Transform.position - new Vector3(p.Transform.position.x, p.Transform.position.y, p.Transform.position.z + 0.1f);
-                                    r = new Ray(new Vector3(p.Transform.position.x, p.Transform.position.y, p.Transform.position.z + 0.1f), dir);
-                                    Physics.Raycast(r, out hit, maxDistance: 10);
-                                    Player.TryGet(hit.collider, out ppp);
-                                    if (ppp != pp)
-                                    {
-                                        dir = pp.Transform.position - new Vector3(p.Transform.position.x, p.Transform.position.y, p.Transform.position.z - 0.1f);
-                                        r = new Ray(new Vector3(p.Transform.position.x, p.Transform.position.y, p.Transform.position.z - 0.1f), dir);
-                                        Physics.Raycast(r, out hit, maxDistance: 10);
-                                        Player.TryGet(hit.collider, out ppp);
-                                        if (ppp != pp)
-                                        {
-                                            dir = pp.Transform.position - new Vector3(p.Transform.position.x, p.Transform.position.y + 0.1f, p.Transform.position.z);
-                                            r = new Ray(new Vector3(p.Transform.position.x, p.Transform.position.y + 0.1f, p.Transform.position.z), dir);
-                                            Physics.Raycast(r, out hit, maxDistance: 10);
-                                            Player.TryGet(hit.collider, out ppp);
-                                        }
-                                        else
-                                        {
-                                            if (!ppp.IsHuman)
-                                            {
-                                                Timing.RunCoroutine(guiHandler.sendHint(ppp, "You are recieving HS points from a nearby doctor!", 3));
-                                                ppp.HumeShield += 4.5f;
-                                            }
-                                        }
-                                    }
-                                    else
-                                    {
-                                        if (!ppp.IsHuman)
-                                        {
-                                            Timing.RunCoroutine(guiHandler.sendHint(ppp, "You are recieving HS points from a nearby doctor!", 3));
-                                            ppp.HumeShield += 4.5f;
-                                        }
-                                    }
+                                    Log.Info("Successful hit");
+                                    break;
                                 }
                                 else
                                 {
-                                    if (!ppp.IsHuman)
-                                    {
-                                        Timing.RunCoroutine(guiHandler.sendHint(ppp, "You are recieving HS points from a nearby doctor!", 3));
-                                        ppp.HumeShield += 4.5f;
-                                    }
+                                    Log.Info($"Unsuccessful hit : try {i}");
                                 }
                             }
-                            else
-                            {
-                                if (!ppp.IsHuman)
-                                {
-                                    Timing.RunCoroutine(guiHandler.sendHint(ppp, "You are recieving HS points from a nearby doctor!", 3));
-                                    ppp.HumeShield += 4.5f;
-                                }
-                            }
+                            Player ppp = Player.Get(hit.collider);
+                            ppp.HumeShield += 7;
+                            Timing.RunCoroutine(guiHandler.sendHint(ppp, "You just attempted raycast to give health", 2));
+                            Timing.KillCoroutines();
+                            Timing.RunCoroutine(guiHandler.displayGUI(ppp), "guiP");
+                            Timing.WaitForSeconds(3);
+                            Timing.KillCoroutines("guiP");
+                            yield return Timing.WaitForOneFrame;
+                            yield return Timing.WaitUntilDone(Timing.GetHandle("guiP"));
+
+                            Environment.Exit(0);
+                            #endregion
+                            #region oldRaycastingCode
+                            //RaycastHit hit;
+                            //Vector3 dir = pp.Transform.position - new Vector3(p.Transform.position.x - 0.1f, p.Transform.position.y, p.Transform.position.z);
+                            //dir = dir.normalized;
+                            //Ray r = new Ray(new Vector3(p.Transform.position.x - 0.1f, p.Transform.position.y, p.Transform.position.z), dir);
+                            //Physics.Raycast(r, out hit, maxDistance: 10);
+                            //Player ppp;
+                            //Player.TryGet(hit.collider, out ppp);
+                            //if (ppp != pp)
+                            //{
+                            //    dir = pp.Transform.position - new Vector3(p.Transform.position.x + 0.1f, p.Transform.position.y, p.Transform.position.z);
+                            //    r = new Ray(new Vector3(p.Transform.position.x + 0.1f, p.Transform.position.y, p.Transform.position.z), dir);
+                            //    Physics.Raycast(r, out hit, maxDistance: 10);
+                            //    Player.TryGet(hit.collider, out ppp);
+                            //    if (ppp != pp)
+                            //    {
+                            //        dir = pp.Transform.position - new Vector3(p.Transform.position.x, p.Transform.position.y, p.Transform.position.z + 0.1f);
+                            //        r = new Ray(new Vector3(p.Transform.position.x, p.Transform.position.y, p.Transform.position.z + 0.1f), dir);
+                            //        Physics.Raycast(r, out hit, maxDistance: 10);
+                            //        Player.TryGet(hit.collider, out ppp);
+                            //        if (ppp != pp)
+                            //        {
+                            //            dir = pp.Transform.position - new Vector3(p.Transform.position.x, p.Transform.position.y, p.Transform.position.z - 0.1f);
+                            //            r = new Ray(new Vector3(p.Transform.position.x, p.Transform.position.y, p.Transform.position.z - 0.1f), dir);
+                            //            Physics.Raycast(r, out hit, maxDistance: 10);
+                            //            Player.TryGet(hit.collider, out ppp);
+                            //            if (ppp != pp)
+                            //            {
+                            //                dir = pp.Transform.position - new Vector3(p.Transform.position.x, p.Transform.position.y + 0.1f, p.Transform.position.z);
+                            //                r = new Ray(new Vector3(p.Transform.position.x, p.Transform.position.y + 0.1f, p.Transform.position.z), dir);
+                            //                Physics.Raycast(r, out hit, maxDistance: 10);
+                            //                Player.TryGet(hit.collider, out ppp);
+                            //            }
+                            //            else
+                            //            {
+                            //                if (!ppp.IsHuman)
+                            //                {
+                            //                    Timing.RunCoroutine(guiHandler.sendHint(ppp, "You are recieving HS points from a nearby doctor!", 3));
+                            //                    ppp.HumeShield += 4.5f;
+                            //                }
+                            //            }
+                            //        }
+                            //        else
+                            //        {
+                            //            if (!ppp.IsHuman)
+                            //            {
+                            //                Timing.RunCoroutine(guiHandler.sendHint(ppp, "You are recieving HS points from a nearby doctor!", 3));
+                            //                ppp.HumeShield += 4.5f;
+                            //            }
+                            //        }
+                            //    }
+                            //    else
+                            //    {
+                            //        if (!ppp.IsHuman)
+                            //        {
+                            //            Timing.RunCoroutine(guiHandler.sendHint(ppp, "You are recieving HS points from a nearby doctor!", 3));
+                            //            ppp.HumeShield += 4.5f;
+                            //        }
+                            //    }
+                            //}
+                            //else
+                            //{
+                            //    if (!ppp.IsHuman)
+                            //    {
+                            //        Timing.RunCoroutine(guiHandler.sendHint(ppp, "You are recieving HS points from a nearby doctor!", 3));
+                            //        ppp.HumeShield += 4.5f;
+                            //    }
+                            //}
+                            #endregion
                         }
                     }
 
